@@ -12,10 +12,10 @@ const AD_ACCOUNTS = process.env.FB_AD_ACCOUNTS
   : [];
 
 const ACCOUNT_NAMES = {
-  [AD_ACCOUNTS[0]]: "Brand Korea - Main",
-  [AD_ACCOUNTS[1]]: "Performance UA - Android",
-  [AD_ACCOUNTS[2]]: "Performance UA - iOS",
-  [AD_ACCOUNTS[3]]: "Retargeting Account",
+  [AD_ACCOUNTS[0]]: "Seed Test",
+  [AD_ACCOUNTS[1]]: "MiniTales",
+  [AD_ACCOUNTS[2]]: "Oh Happy Dog : Merge Story",
+  [AD_ACCOUNTS[3]]: "Legend of Slime: Idle RPG",
 };
 
 function extractFolderId(input) {
