@@ -19,11 +19,24 @@ app.get("/auth/google/callback", async (req, res) => {
   try {
     const tokens = await getToken(code);
     oauth2Client.setCredentials(tokens);
-    res.send(`
-      <h2>✅ Google 로그인 성공!</h2>
-      <p>이제 아래 주소로 업로드를 실행할 수 있습니다.</p>
-      <pre>POST http://localhost:3000/upload</pre>
-    `);
+    const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+res.send(`
+  <h2>✅ Google 로그인 성공!</h2>
+  <p>이제 아래 주소로 업로드를 실행할 수 있습니다.</p>
+  <pre>POST ${baseUrl}/upload</pre>
+  <br>
+  <form method="POST" action="${baseUrl}/upload" 
+        style="font-family:sans-serif; padding:20px;">
+    <label>Drive 폴더 ID:</label><br>
+    <input name="folderId" style="width:400px; padding:8px; margin:8px 0;" 
+           placeholder="Google Drive 폴더 ID 입력"/><br>
+    <button type="submit" 
+            style="background:#1877F2; color:white; padding:10px 24px; 
+                   border:none; border-radius:6px; cursor:pointer; font-size:14px;">
+      소재 라이브러리에 업로드
+    </button>
+  </form>
+`);
   } catch (err) {
     res.status(500).send("로그인 실패: " + err.message);
   }
