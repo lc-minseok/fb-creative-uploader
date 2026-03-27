@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const path = require("path");
 const { getAuthUrl, getToken, oauth2Client, listFilesInFolder, downloadFile } = require("./drive");
 const { uploadImage, uploadVideo } = require("./facebook");
 
@@ -7,11 +8,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ✅ public 폴더에서 이미지 제공
+app.use(express.static(path.join(__dirname, "public")));
+
 const AD_ACCOUNTS = process.env.FB_AD_ACCOUNTS
   ? process.env.FB_AD_ACCOUNTS.split(",").map(a => a.trim())
   : [];
 
-// ✅ 실제 광고 계정 이름 (수정 완료된 값 유지)
 const ACCOUNT_NAMES = {
   [AD_ACCOUNTS[0]]: "Seed Test",
   [AD_ACCOUNTS[1]]: "MiniTales",
@@ -19,23 +22,16 @@ const ACCOUNT_NAMES = {
   [AD_ACCOUNTS[3]]: "Legend of Slime: Idle RPG",
 };
 
-// ✅ Play Store 패키지 ID (앱 아이콘 자동 로드)
-const APP_PACKAGES = {
-  [AD_ACCOUNTS[0]]: null,
-  [AD_ACCOUNTS[1]]: "com.loadcomplete.minitales",
-  [AD_ACCOUNTS[2]]: "com.jollytap.mungmerge",
-  [AD_ACCOUNTS[3]]: "com.loadcomplete.slimeidle",
+// ✅ 직접 제공한 앱 아이콘 이미지 경로
+const APP_ICONS = {
+  [AD_ACCOUNTS[0]]: "/seed.png",
+  [AD_ACCOUNTS[1]]: "/minitales.png",
+  [AD_ACCOUNTS[2]]: "/ohappydog.png",
+  [AD_ACCOUNTS[3]]: "/legendofslime.png",
 };
 
-const ICON_COLORS = ["#0866FF","#42B72A","#F5A623","#E1306C"];
-
-// ✅ 접근 허용 도메인
+const ICON_COLORS = ["#2E7D32","#E65100","#4A148C","#1565C0"];
 const ALLOWED_DOMAIN = "@loadcomplete.com";
-
-function getIconUrl(packageId) {
-  if (!packageId) return null;
-  return `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://play.google.com/store/apps/details?id=${packageId}&size=128`;
-}
 
 function extractFolderId(input) {
   input = input.trim();
@@ -62,7 +58,8 @@ const HTML = (content) => `<!DOCTYPE html>
 }
 body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 .topbar { background: linear-gradient(135deg,#0866FF 0%,#0052CC 100%); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(8,102,255,0.3); }
-.topbar-logo { width: 38px; height: 38px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.topbar-logo { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.topbar-logo img { width: 36px; height: 36px; object-fit: contain; filter: brightness(0) invert(1); }
 .topbar-title { color: white; font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
 .topbar-badge { margin-left: auto; background: rgba(255,255,255,0.2); color: white; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
 .layout { display: flex; min-height: calc(100vh - 56px); }
@@ -90,9 +87,8 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 .account-item:hover { border-color:var(--fb); background:var(--fb-light); }
 .account-item.selected { border-color:var(--fb); background:var(--fb-light); box-shadow:0 0 0 3px rgba(8,102,255,0.1); }
 .account-item input[type="checkbox"] { display:none; }
-.account-avatar { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; color:white; overflow:hidden; }
-.account-avatar img { width:100%; height:100%; object-fit:cover; border-radius:10px; display:block; }
-.account-avatar .fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:white; border-radius:10px; }
+.account-avatar { width:40px; height:40px; border-radius:10px; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.account-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
 .account-name { font-size:12.5px; font-weight:500; color:var(--text); line-height:1.3; }
 .account-id { font-size:10px; color:var(--muted); margin-top:2px; }
 .account-check { margin-left:auto; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
@@ -149,9 +145,7 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 <body>
 <div class="topbar">
   <div class="topbar-logo">
-    <svg width="26" height="16" viewBox="0 0 62 38" fill="white" xmlns="http://www.w3.org/2000/svg">
-      <path d="M31 0C20.8 0 14.4 5.2 10.8 10.4C7.7 14.8 6 19.5 6 19.5S4.3 14.8 1.2 10.4C0 8.6 0 7 0 7V31c0 0 0-1.4 1.5-3.9C4.5 22.8 6 18 6 18s1.5 4.8 4.5 9.1C14.4 32.8 20.8 38 31 38s16.6-5.2 20.5-10.9C54.5 22.8 56 18 56 18s1.5 4.8 4.5 9.1C62 29.6 62 31 62 31V7c0 0 0 1.6-1.2 3.4C57.7 14.8 56 19.5 56 19.5S54.3 14.8 51.2 10.4C47.6 5.2 41.2 0 31 0z"/>
-    </svg>
+    <img src="/meta.png" alt="Meta" style="width:32px;height:32px;object-fit:contain;filter:brightness(0) invert(1)">
   </div>
   <span class="topbar-title">Meta Creative Uploader</span>
   <span class="topbar-badge">소재 라이브러리 전용</span>
@@ -162,7 +156,6 @@ ${content}
 app.get("/", (req, res) => res.redirect("/auth"));
 app.get("/auth", (req, res) => res.redirect(getAuthUrl()));
 
-// ✅ Google 로그인 콜백 + 도메인 제한
 app.get("/auth/google/callback", async (req, res) => {
   try {
     const tokens = await getToken(req.query.code);
@@ -203,16 +196,13 @@ app.get("/auth/google/callback", async (req, res) => {
 app.get("/dashboard", (req, res) => {
   const accountOptions = AD_ACCOUNTS.map((id, i) => {
     const name = ACCOUNT_NAMES[id] || `광고 계정 ${i+1}`;
-    const pkg = APP_PACKAGES[id];
-    const iconUrl = getIconUrl(pkg);
-    const initials = name.split(" ").filter(w=>w).map(w=>w[0]).join("").slice(0,2).toUpperCase();
-    const avatarHtml = iconUrl
-      ? `<div class="account-avatar"><img src="${iconUrl}" alt="${name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="fallback" style="background:${ICON_COLORS[i%ICON_COLORS.length]};display:none">${initials}</div></div>`
-      : `<div class="account-avatar"><div class="fallback" style="background:${ICON_COLORS[i%ICON_COLORS.length]}">${initials}</div></div>`;
+    const iconPath = APP_ICONS[id];
 
     return `<label class="account-item" id="label_${i}" onclick="toggleAccount(${i})">
       <input type="checkbox" name="adAccountIds" value="${id}" id="acc_${i}">
-      ${avatarHtml}
+      <div class="account-avatar">
+        <img src="${iconPath}" alt="${name}" style="border-radius:10px">
+      </div>
       <div style="flex:1;min-width:0">
         <div class="account-name">${name}</div>
         <div class="account-id">${id}</div>
@@ -306,15 +296,13 @@ function deselectAll(){document.querySelectorAll('[id^=acc_]').forEach((cb,i)=>{
 function addRow(){const div=document.createElement('div');div.className='drive-row';div.innerHTML='<input type="text" name="driveLinks" placeholder="https://drive.google.com/drive/folders/... 또는 폴더 ID"/><button type="button" class="btn-remove" onclick="removeRow(this)">×</button>';document.getElementById('driveLinks').appendChild(div);}
 function removeRow(btn){const rows=document.querySelectorAll('.drive-row');if(rows.length>1)btn.closest('.drive-row').remove();}
 function addLog(text,type){const area=document.getElementById('logArea');const now=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const item=document.createElement('div');item.className='log-item';item.innerHTML='<div class="log-dot '+type+'"></div><div class="log-text">'+text+'</div><div class="log-time">'+now+'</div>';area.appendChild(item);area.scrollTop=area.scrollHeight;}
-
-const LOG_STEPS = [
+const LOG_STEPS=[
   {text:'Google Drive 폴더 스캔 중...',delay:600,type:'ing'},
   {text:'소재 파일 목록 조회 완료',delay:2000,type:'ok'},
   {text:'소재 다운로드 중...',delay:3200,type:'ing'},
   {text:'Facebook API 연결 중...',delay:5000,type:'ing'},
   {text:'광고 계정에 소재 업로드 중...',delay:7000,type:'ing'},
 ];
-
 document.getElementById('uploadForm').addEventListener('submit',function(e){
   const accounts=document.querySelectorAll('[id^=acc_]:checked');
   const links=document.querySelectorAll('[name=driveLinks]');
@@ -373,8 +361,15 @@ app.post("/upload", async (req, res) => {
   const rows = allResults.map(r => {
     const badge = r.status === "success" ? '<span class="badge success">✓ 성공</span>' : '<span class="badge fail">✗ 실패</span>';
     const name = ACCOUNT_NAMES[r.accountId] || r.accountId;
+    const iconPath = APP_ICONS[r.accountId] || "";
     const fn = r.file.length > 28 ? r.file.slice(0,26)+"…" : r.file;
-    return `<tr><td style="font-family:monospace;font-size:11px;color:#65676B">${r.folderId?r.folderId.slice(0,10)+"…":"-"}</td><td style="font-weight:500">${fn}</td><td style="color:#65676B;font-size:12px">${name}</td><td>${badge}</td></tr>`;
+    const iconHtml = iconPath ? `<img src="${iconPath}" style="width:20px;height:20px;border-radius:5px;vertical-align:middle;margin-right:6px">` : "";
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px;color:#65676B">${r.folderId?r.folderId.slice(0,10)+"…":"-"}</td>
+      <td style="font-weight:500">${fn}</td>
+      <td style="color:#65676B;font-size:12px">${iconHtml}${name}</td>
+      <td>${badge}</td>
+    </tr>`;
   }).join("");
 
   const content = `
