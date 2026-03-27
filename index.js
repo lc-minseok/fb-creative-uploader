@@ -7,8 +7,6 @@ const { uploadImage, uploadVideo } = require("./facebook");
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ public 폴더에서 이미지 제공
 app.use(express.static(path.join(__dirname, "public")));
 
 const AD_ACCOUNTS = process.env.FB_AD_ACCOUNTS
@@ -22,7 +20,6 @@ const ACCOUNT_NAMES = {
   [AD_ACCOUNTS[3]]: "Legend of Slime: Idle RPG",
 };
 
-// ✅ 직접 제공한 앱 아이콘 이미지 경로
 const APP_ICONS = {
   [AD_ACCOUNTS[0]]: "/seed.png",
   [AD_ACCOUNTS[1]]: "/minitales.png",
@@ -30,7 +27,6 @@ const APP_ICONS = {
   [AD_ACCOUNTS[3]]: "/legendofslime.png",
 };
 
-const ICON_COLORS = ["#2E7D32","#E65100","#4A148C","#1565C0"];
 const ALLOWED_DOMAIN = "@loadcomplete.com";
 
 function extractFolderId(input) {
@@ -40,6 +36,31 @@ function extractFolderId(input) {
   if (/^[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
   return null;
 }
+
+// Meta 로고 SVG (직접 그림)
+const META_LOGO_SVG = `<svg width="32" height="20" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+  <path fill="white" d="
+    M160,20
+    C110,20 75,55 55,85
+    C40,107 32,130 32,130
+    C32,130 24,107 9,85
+    C0,72 0,60 0,60
+    L0,175
+    C0,175 0,163 9,150
+    C24,128 32,105 32,105
+    C32,105 40,128 55,150
+    C75,180 110,200 160,200
+    C210,200 245,180 265,150
+    C280,128 288,105 288,105
+    C288,105 296,128 311,150
+    C320,163 320,175 320,175
+    L320,60
+    C320,60 320,72 311,85
+    C296,107 288,130 288,130
+    C288,130 280,107 265,85
+    C245,55 210,20 160,20Z
+  "/>
+</svg>`;
 
 const HTML = (content) => `<!DOCTYPE html>
 <html lang="ko">
@@ -57,9 +78,18 @@ const HTML = (content) => `<!DOCTYPE html>
   --text: #1C1E21; --muted: #65676B; --radius: 12px;
 }
 body { font-family: 'DM Sans', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-.topbar { background: linear-gradient(135deg,#0866FF 0%,#0052CC 100%); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(8,102,255,0.3); }
-.topbar-logo { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
-.topbar-logo img { width: 36px; height: 36px; object-fit: contain; filter: brightness(0) invert(1); }
+.topbar {
+  background: linear-gradient(135deg,#0866FF 0%,#0052CC 100%);
+  padding: 0 24px; height: 56px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(8,102,255,0.3);
+}
+.topbar-logo {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
 .topbar-title { color: white; font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
 .topbar-badge { margin-left: auto; background: rgba(255,255,255,0.2); color: white; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
 .layout { display: flex; min-height: calc(100vh - 56px); }
@@ -87,8 +117,8 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 .account-item:hover { border-color:var(--fb); background:var(--fb-light); }
 .account-item.selected { border-color:var(--fb); background:var(--fb-light); box-shadow:0 0 0 3px rgba(8,102,255,0.1); }
 .account-item input[type="checkbox"] { display:none; }
-.account-avatar { width:40px; height:40px; border-radius:10px; flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.account-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+.account-avatar { width:40px; height:40px; border-radius:10px; flex-shrink:0; overflow:hidden; }
+.account-avatar img { width:100%; height:100%; object-fit:cover; display:block; border-radius:10px; }
 .account-name { font-size:12.5px; font-weight:500; color:var(--text); line-height:1.3; }
 .account-id { font-size:10px; color:var(--muted); margin-top:2px; }
 .account-check { margin-left:auto; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
@@ -102,7 +132,7 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 .btn-sel:hover { text-decoration:underline; }
 .side-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
 .pulse-dot { width:8px; height:8px; border-radius:50%; background:#BCC0C4; }
-.pulse-dot.active { background:var(--fb); animation: pulse 1.2s ease infinite; }
+.pulse-dot.active { background:var(--fb); animation:pulse 1.2s ease infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
 .side-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--muted); }
 .side-empty-icon { font-size:40px; margin-bottom:14px; opacity:0.3; }
@@ -143,11 +173,8 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 </style>
 </head>
 <body>
-<div class="topbar-logo">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/800px-Meta_Platforms_Inc._logo.svg.png" 
-       alt="Meta" 
-       style="width:52px;height:auto;object-fit:contain;filter:brightness(0) invert(1);">
-</div>
+<div class="topbar">
+  <div class="topbar-logo">${META_LOGO_SVG}</div>
   <span class="topbar-title">Meta Creative Uploader</span>
   <span class="topbar-badge">소재 라이브러리 전용</span>
 </div>
@@ -161,13 +188,11 @@ app.get("/auth/google/callback", async (req, res) => {
   try {
     const tokens = await getToken(req.query.code);
     oauth2Client.setCredentials(tokens);
-
     const ticket = await oauth2Client.verifyIdToken({
       idToken: tokens.id_token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const email = ticket.getPayload().email;
-
     if (!email.endsWith(ALLOWED_DOMAIN)) {
       return res.status(403).send(HTML(`
         <div class="layout">
@@ -187,7 +212,6 @@ app.get("/auth/google/callback", async (req, res) => {
         </div>
       `));
     }
-
     res.redirect("/dashboard");
   } catch (err) {
     res.status(500).send("로그인 실패: " + err.message);
@@ -198,11 +222,10 @@ app.get("/dashboard", (req, res) => {
   const accountOptions = AD_ACCOUNTS.map((id, i) => {
     const name = ACCOUNT_NAMES[id] || `광고 계정 ${i+1}`;
     const iconPath = APP_ICONS[id];
-
     return `<label class="account-item" id="label_${i}" onclick="toggleAccount(${i})">
       <input type="checkbox" name="adAccountIds" value="${id}" id="acc_${i}">
       <div class="account-avatar">
-        <img src="${iconPath}" alt="${name}" style="border-radius:10px">
+        <img src="${iconPath}" alt="${name}">
       </div>
       <div style="flex:1;min-width:0">
         <div class="account-name">${name}</div>
@@ -232,7 +255,6 @@ app.get("/dashboard", (req, res) => {
         </div>
         <div class="accounts-grid">${accountOptions}</div>
       </div>
-
       <div class="card">
         <div class="card-header">
           <div class="card-icon" style="background:#FEF3E2">
@@ -258,19 +280,14 @@ app.get("/dashboard", (req, res) => {
           • 캠페인이 아닌 <strong>소재 라이브러리에만</strong> 업로드됩니다
         </div>
       </div>
-
       <button type="submit" class="btn-submit" id="submitBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         소재 라이브러리에 업로드 시작
       </button>
     </form>
   </div>
-
   <div class="side-col">
-    <div class="side-title">
-      <div class="pulse-dot" id="pulseDot"></div>
-      업로드 현황
-    </div>
+    <div class="side-title"><div class="pulse-dot" id="pulseDot"></div>업로드 현황</div>
     <div class="side-empty" id="sideEmpty">
       <div class="side-empty-icon">📤</div>
       <div class="side-empty-text">업로드를 시작하면<br>진행 현황이 여기에 표시됩니다</div>
@@ -281,15 +298,11 @@ app.get("/dashboard", (req, res) => {
         <div class="summary-row"><span class="summary-label">Drive 폴더</span><span class="summary-val" id="sumFolders">-</span></div>
         <div class="summary-row"><span class="summary-label">상태</span><span class="summary-val" id="sumStatus" style="color:#0866FF">-</span></div>
       </div>
-      <div class="spinner-wrap" id="spinnerWrap">
-        <div class="spinner"></div>
-        <span class="spinner-text" id="spinnerText">처리 중...</span>
-      </div>
+      <div class="spinner-wrap"><div class="spinner"></div><span class="spinner-text" id="spinnerText">처리 중...</span></div>
       <div class="log-area" id="logArea"></div>
     </div>
   </div>
 </div>
-
 <script>
 function toggleAccount(i){const cb=document.getElementById('acc_'+i);const label=document.getElementById('label_'+i);cb.checked=!cb.checked;label.classList.toggle('selected',cb.checked);}
 function selectAll(){document.querySelectorAll('[id^=acc_]').forEach((cb,i)=>{cb.checked=true;document.getElementById('label_'+i).classList.add('selected');});}
@@ -304,7 +317,7 @@ const LOG_STEPS=[
   {text:'Facebook API 연결 중...',delay:5000,type:'ing'},
   {text:'광고 계정에 소재 업로드 중...',delay:7000,type:'ing'},
 ];
-document.getElementById('uploadForm').addEventListener('submit',function(e){
+document.getElementById('uploadForm').addEventListener('submit',function(){
   const accounts=document.querySelectorAll('[id^=acc_]:checked');
   const links=document.querySelectorAll('[name=driveLinks]');
   document.getElementById('sideEmpty').style.display='none';
@@ -320,7 +333,6 @@ document.getElementById('uploadForm').addEventListener('submit',function(e){
   btn.disabled=true;
 });
 </script>`;
-
   res.send(HTML(content));
 });
 
@@ -329,10 +341,8 @@ app.post("/upload", async (req, res) => {
   if (!driveLinks) return res.redirect("/dashboard");
   if (!Array.isArray(driveLinks)) driveLinks = [driveLinks];
   if (!Array.isArray(adAccountIds)) adAccountIds = adAccountIds ? [adAccountIds] : [];
-
   const folderIds = driveLinks.map(link => ({ original: link.trim(), id: extractFolderId(link.trim()) })).filter(f => f.id);
   if (folderIds.length === 0 || adAccountIds.length === 0) return res.redirect("/dashboard");
-
   const allResults = [];
   for (const folder of folderIds) {
     try {
@@ -355,24 +365,16 @@ app.post("/upload", async (req, res) => {
       allResults.push({ file: "폴더 스캔 실패", accountId: "-", status: "failed", error: err.message, folderId: folder.id });
     }
   }
-
   const success = allResults.filter(r => r.status === "success").length;
   const failed = allResults.filter(r => r.status === "failed").length;
-
   const rows = allResults.map(r => {
     const badge = r.status === "success" ? '<span class="badge success">✓ 성공</span>' : '<span class="badge fail">✗ 실패</span>';
     const name = ACCOUNT_NAMES[r.accountId] || r.accountId;
     const iconPath = APP_ICONS[r.accountId] || "";
     const fn = r.file.length > 28 ? r.file.slice(0,26)+"…" : r.file;
     const iconHtml = iconPath ? `<img src="${iconPath}" style="width:20px;height:20px;border-radius:5px;vertical-align:middle;margin-right:6px">` : "";
-    return `<tr>
-      <td style="font-family:monospace;font-size:11px;color:#65676B">${r.folderId?r.folderId.slice(0,10)+"…":"-"}</td>
-      <td style="font-weight:500">${fn}</td>
-      <td style="color:#65676B;font-size:12px">${iconHtml}${name}</td>
-      <td>${badge}</td>
-    </tr>`;
+    return `<tr><td style="font-family:monospace;font-size:11px;color:#65676B">${r.folderId?r.folderId.slice(0,10)+"…":"-"}</td><td style="font-weight:500">${fn}</td><td style="color:#65676B;font-size:12px">${iconHtml}${name}</td><td>${badge}</td></tr>`;
   }).join("");
-
   const content = `
 <div class="layout">
   <div class="main-col full">
@@ -399,7 +401,6 @@ app.post("/upload", async (req, res) => {
     </div>
   </div>
 </div>`;
-
   res.send(HTML(content));
 });
 
