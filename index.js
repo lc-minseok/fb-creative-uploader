@@ -143,9 +143,10 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-logo" style="background:white;border-radius:8px;padding:4px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
-  <img src="/meta.png" alt="Meta" style="width:30px;height:30px;object-fit:contain;">
+<div class="topbar-logo">
+  <svg width="28" height="18" viewBox="0 0 60 38" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <path d="M30 0C19.5 0 13.2 5.5 9.8 10.5C7 14.5 5.5 19 5.5 19S4 14.5 1.2 10.5C0 8.8 0 7 0 7V31s0-1.8 1.2-3.5C4 23.5 5.5 19 5.5 19s1.5 4.5 4.3 8.5C13.2 32.5 19.5 38 30 38s16.8-5.5 20.2-10.5C53.5 23.5 55 19 55 19s1.5 4.5 4.3 8.5C60.5 29.2 60.5 31 60.5 31V7s0 1.8-1.2 3.5C56.5 14.5 55 19 55 19s-1.5-4.5-4.3-8.5C47.2 5.5 40.5 0 30 0z"/>
+  </svg>
 </div>
   <span class="topbar-title">Meta Creative Uploader</span>
   <span class="topbar-badge">소재 라이브러리 전용</span>
