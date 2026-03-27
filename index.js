@@ -144,9 +144,9 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 </head>
 <body>
 <div class="topbar-logo">
-  <svg width="30" height="30" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-    <path fill="white" d="M15 30c0-4.4 2.1-8.5 5.5-11 2.2-1.6 4.7-2.5 7.3-2.5 2.8 0 5.2 1 7 2.8l-2.8 2.8c-1.1-1.1-2.6-1.8-4.2-1.8-1.7 0-3.3.6-4.6 1.7-2.1 1.7-3.4 4.5-3.4 8s1.3 6.3 3.4 8c1.3 1.1 2.9 1.7 4.6 1.7 1.6 0 3.1-.7 4.2-1.8l2.8 2.8c-1.8 1.8-4.2 2.8-7 2.8-2.6 0-5.1-.9-7.3-2.5C17.1 38.5 15 34.4 15 30z M30 19.5c1.8-1.8 4.2-2.8 7-2.8 2.6 0 5.1.9 7.3 2.5C47.9 21.7 50 25.7 50 30.1s-2.1 8.4-5.7 10.9c-2.2 1.6-4.7 2.5-7.3 2.5-2.8 0-5.2-1-7-2.8l2.8-2.8c1.1 1.1 2.6 1.8 4.2 1.8 1.7 0 3.3-.6 4.6-1.7 2.2-1.7 3.6-4.6 3.6-7.9s-1.4-6.2-3.6-7.9c-1.3-1.1-2.9-1.7-4.6-1.7-1.6 0-3.1.7-4.2 1.8L30 19.5z"/>
-  </svg>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/800px-Meta_Platforms_Inc._logo.svg.png" 
+       alt="Meta" 
+       style="width:52px;height:auto;object-fit:contain;filter:brightness(0) invert(1);">
 </div>
   <span class="topbar-title">Meta Creative Uploader</span>
   <span class="topbar-badge">소재 라이브러리 전용</span>
