@@ -20,7 +20,11 @@ if (fs.existsSync(TOKEN_PATH)) {
 function getAuthUrl() {
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/drive.readonly"],
+    scope: scope: [
+  "https://www.googleapis.com/auth/drive.readonly",
+  "openid",
+  "email",
+],
     prompt: "consent",
   });
   return url;
