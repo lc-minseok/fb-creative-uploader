@@ -145,7 +145,7 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 <body>
 <div class="topbar">
   <div class="topbar-logo">
-    <img src="/meta.png" alt="Meta" style="width:32px;height:32px;object-fit:contain;filter:brightness(0) invert(1)">
+  <img src="/meta.png" alt="Meta" style="width:32px;height:32px;object-fit:contain;">
   </div>
   <span class="topbar-title">Meta Creative Uploader</span>
   <span class="topbar-badge">소재 라이브러리 전용</span>
