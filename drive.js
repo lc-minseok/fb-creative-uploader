@@ -29,7 +29,6 @@ function getAuthUrl() {
 async function getToken(code) {
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
-  // 토큰을 파일로 저장
   fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
   console.log("토큰 저장 완료:", TOKEN_PATH);
   return tokens;
@@ -44,8 +43,8 @@ async function listFilesInFolder(folderId) {
           mimeType contains 'video/'
         )`,
     fields: "files(id, name, mimeType, size, createdTime)",
-    supportsAllDrives: true,        // ← 추가
-    includeItemsFromAllDrives: true, // ← 추가
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
   });
 
   console.log("스캔 결과:", JSON.stringify(res.data.files, null, 2));
@@ -56,7 +55,7 @@ async function downloadFile(fileId) {
   const drive = google.drive({ version: "v3", auth: oauth2Client });
 
   const res = await drive.files.get(
-    { fileId, alt: "media" },
+    { fileId, alt: "media", supportsAllDrives: true },
     { responseType: "arraybuffer" }
   );
 
