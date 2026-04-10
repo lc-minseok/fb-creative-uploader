@@ -18,6 +18,7 @@ const ACCOUNT_NAMES = {
   [AD_ACCOUNTS[1]]: "MiniTales",
   [AD_ACCOUNTS[2]]: "Oh Happy Dog : Merge Story",
   [AD_ACCOUNTS[3]]: "Legend of Slime: Idle RPG",
+  [AD_ACCOUNTS[4]]: "My Purrfect Cat Tree",
 };
 
 const APP_ICONS = {
@@ -25,6 +26,7 @@ const APP_ICONS = {
   [AD_ACCOUNTS[1]]: "/minitales.png",
   [AD_ACCOUNTS[2]]: "/ohappydog.png",
   [AD_ACCOUNTS[3]]: "/legendofslime.png",
+  [AD_ACCOUNTS[4]]: "/meowtower.png",
 };
 
 const ALLOWED_DOMAIN = "@loadcomplete.com";
