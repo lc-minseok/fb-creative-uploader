@@ -98,8 +98,8 @@ input[type="text"]::placeholder { color:#BCC0C4; }
 .account-item input[type="checkbox"] { display:none; }
 .account-avatar { width:36px; height:36px; border-radius:9px; flex-shrink:0; overflow:hidden; }
 .account-avatar img { width:100%; height:100%; object-fit:cover; display:block; border-radius:9px; }
-.account-name { font-size:12px; font-weight:500; color:var(--text); line-height:1.3; }
-.account-id { font-size:10px; color:var(--muted); margin-top:1px; }
+.account-name { font-size:14px; font-weight:600; color:var(--text); line-height:1.3; }
+.account-id { display:none; }
 .account-check { margin-left:auto; width:18px; height:18px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s; }
 .account-item.selected .account-check { background:var(--fb); border-color:var(--fb); }
 .btn-submit { width:100%; padding:13px; background:var(--fb); color:white; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; margin-top:8px; box-shadow:0 2px 8px rgba(24,119,242,0.25); }
