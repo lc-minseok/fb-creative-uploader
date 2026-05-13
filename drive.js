@@ -20,7 +20,11 @@ if (fs.existsSync(TOKEN_PATH)) {
 function getAuthUrl() {
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/drive.readonly", "openid", "email"],
+    scope: [
+      "https://www.googleapis.com/auth/drive.readonly",
+      "openid",
+      "email"
+    ],
     prompt: "consent",
   });
   return url;
@@ -47,7 +51,7 @@ async function listFilesInFolder(folderId) {
     includeItemsFromAllDrives: true,
   });
 
-  console.log("스캔 결과:", JSON.stringify(res.data.files, null, 2));
+  console.log(`폴더 스캔 완료: ${res.data.files.length}개 파일`);
   return res.data.files;
 }
 
@@ -62,4 +66,10 @@ async function downloadFile(fileId) {
   return Buffer.from(res.data);
 }
 
-module.exports = { getAuthUrl, getToken, listFilesInFolder, downloadFile, oauth2Client };
+module.exports = {
+  getAuthUrl,
+  getToken,
+  listFilesInFolder,
+  downloadFile,
+  oauth2Client,
+};
