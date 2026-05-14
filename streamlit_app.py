@@ -24,9 +24,264 @@ PUBLIC_DIR = Path(__file__).parent / "public"
 st.set_page_config(
     page_title="Facebook Creative Uploader",
     page_icon=str(PUBLIC_DIR / "meta.png") if (PUBLIC_DIR / "meta.png").exists() else "📤",
-    layout="wide",
+    layout="centered",
 )
 
+
+# ────────────────────────────────────────────────────────────────────────
+# UI assets
+# ────────────────────────────────────────────────────────────────────────
+
+CSS = """
+<style>
+:root {
+  --fb: #1877F2;
+  --fb-dark: #0d6adb;
+  --fb-light: #E7F3FF;
+  --green: #42B72A;
+  --red: #FA3E3E;
+  --bg: #F0F2F5;
+  --border: #E4E6EB;
+  --text: #1C1E21;
+  --muted: #65676B;
+}
+
+/* Hide default Streamlit chrome */
+header[data-testid="stHeader"] { display: none !important; }
+footer { display: none !important; }
+#MainMenu { display: none !important; }
+
+.block-container {
+  padding-top: 0 !important;
+  padding-bottom: 3rem !important;
+  max-width: 760px !important;
+}
+
+/* Topbar */
+.fb-topbar {
+  background: var(--fb);
+  height: 56px;
+  margin: 0 -2rem 1.5rem;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  box-shadow: 0 2px 8px rgba(24,119,242,0.3);
+}
+.fb-topbar svg { display: block; flex-shrink: 0; }
+.fb-topbar .title { font-weight: 600; font-size: 17px; letter-spacing: -0.3px; }
+.fb-topbar .badge {
+  margin-left: auto;
+  background: rgba(255,255,255,0.2);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* Bordered containers act as cards */
+div[data-testid="stVerticalBlockBorderWrapper"] {
+  border-radius: 12px !important;
+  border: 1px solid var(--border) !important;
+  background: white !important;
+  margin-bottom: 14px;
+}
+div[data-testid="stVerticalBlockBorderWrapper"] > div {
+  padding: 16px 20px !important;
+}
+
+/* Section header */
+.section-head {
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+.section-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.section-title-text { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.section-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.step-badge {
+  margin-left: auto;
+  background: var(--fb-light); color: var(--fb);
+  font-size: 11px; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Primary button = FB blue */
+.stButton > button[kind="primary"],
+button[data-testid="baseButton-primary"] {
+  background: var(--fb) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(24,119,242,0.25);
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+}
+.stButton > button[kind="primary"]:hover:not(:disabled) {
+  background: var(--fb-dark) !important;
+  box-shadow: 0 6px 16px rgba(24,119,242,0.35);
+}
+.stButton > button[kind="primary"]:disabled {
+  background: #BCC0C4 !important;
+  box-shadow: none;
+  opacity: 1 !important;
+  color: white !important;
+}
+
+/* Link button (Google login) */
+.stLinkButton > a {
+  background: var(--fb) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(24,119,242,0.25);
+}
+.stLinkButton > a:hover { background: var(--fb-dark) !important; }
+
+/* Info box */
+.info-box {
+  background: var(--fb-light);
+  border: 1px solid #C5D9F8;
+  border-radius: 8px;
+  padding: 11px 13px;
+  font-size: 12px;
+  color: #1864C8;
+  line-height: 1.7;
+  margin-top: 10px;
+}
+
+/* Login card */
+.login-wrap { display: flex; justify-content: center; padding: 60px 20px 0; }
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  padding: 36px 28px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: white;
+}
+.login-card .lock {
+  width: 56px; height: 56px;
+  margin: 0 auto 18px;
+  background: var(--fb-light);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.login-card h2 { font-size: 18px; margin: 0 0 8px; color: var(--text); }
+.login-card p { font-size: 13px; color: var(--muted); margin: 0 0 22px; line-height: 1.7; }
+
+/* Tabs polish */
+.stTabs [data-baseweb="tab-list"] { gap: 4px; }
+.stTabs [data-baseweb="tab"] {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+}
+.stTabs [aria-selected="true"] {
+  background: var(--fb-light) !important;
+  color: var(--fb) !important;
+}
+
+/* Checkbox + image rows in account grid */
+.account-row [data-testid="stCheckbox"] label p { font-weight: 600 !important; font-size: 14px !important; }
+
+/* Small inline action buttons */
+.tiny-actions .stButton button {
+  padding: 2px 10px !important;
+  font-size: 12px !important;
+  background: transparent !important;
+  color: var(--fb) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.tiny-actions .stButton button:hover { text-decoration: underline; }
+
+/* Sidebar tidy */
+[data-testid="stSidebar"] { background: white; }
+
+/* Mapping summary chip */
+.mapping-summary {
+  font-size: 12.5px; color: var(--muted);
+  margin-top: 8px;
+}
+.mapping-summary strong { color: var(--fb); }
+</style>
+"""
+
+FB_SVG = (
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="white" '
+    'xmlns="http://www.w3.org/2000/svg">'
+    '<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 '
+    "10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 "
+    "4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 "
+    "1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+    '"/></svg>'
+)
+
+
+def inject_css():
+    st.markdown(CSS, unsafe_allow_html=True)
+
+
+def topbar():
+    st.markdown(
+        f'<div class="fb-topbar">{FB_SVG}'
+        f'<span class="title">Facebook Creative Uploader</span>'
+        f'<span class="badge">소재 라이브러리 전용</span></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def section_header(icon_bg: str, icon_svg: str, title: str, subtitle: str, step: str | None = None):
+    badge = f'<span class="step-badge">{step}</span>' if step else ""
+    st.markdown(
+        f'<div class="section-head">'
+        f'<div class="section-icon" style="background:{icon_bg}">{icon_svg}</div>'
+        f'<div><div class="section-title-text">{title}</div>'
+        f'<div class="section-subtitle">{subtitle}</div></div>'
+        f"{badge}</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def info_box(html: str):
+    st.markdown(f'<div class="info-box">{html}</div>', unsafe_allow_html=True)
+
+
+# Inline SVG icons used in section headers
+ICON_DOLLAR = (
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1877F2" '
+    'stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/>'
+    '<path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>'
+)
+ICON_FOLDER = (
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5A623" '
+    'stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 '
+    '01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>'
+)
+ICON_MAP = (
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9B59B6" '
+    'stroke-width="2" stroke-linecap="round"><path d="M17 3a2.828 2.828 0 114 4L7.5 '
+    '20.5 2 22l1.5-5.5L17 3z"/></svg>'
+)
+ICON_LOCK = (
+    '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1877F2" '
+    'stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" '
+    'rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>'
+)
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Config
+# ────────────────────────────────────────────────────────────────────────
 
 def load_ad_accounts():
     raw = st.secrets.get("ad_accounts", [])
@@ -40,6 +295,10 @@ AD_ACCOUNTS = load_ad_accounts()
 ACCOUNT_NAMES = {a["id"]: a["name"] for a in AD_ACCOUNTS}
 APP_ICONS = {a["id"]: a["icon"] for a in AD_ACCOUNTS}
 
+
+# ────────────────────────────────────────────────────────────────────────
+# Auth
+# ────────────────────────────────────────────────────────────────────────
 
 def handle_oauth_callback():
     qp = st.query_params
@@ -67,31 +326,47 @@ def handle_oauth_callback():
 
 
 def login_view():
-    st.title("Facebook Creative Uploader")
-    st.caption("소재 라이브러리 전용")
+    inject_css()
+    topbar()
 
-    if "auth_error" in st.session_state:
-        email = st.session_state.pop("auth_error")
-        st.error(
-            f"이 서비스는 Loadcomplete 임직원만 사용할 수 있습니다.\n\n"
-            f"**{email}** 계정은 접근이 제한되어 있습니다."
-        )
-
-    # PKCE 검증을 위해 auth URL과 code_verifier를 세션에 캐시한다.
-    # 매 rerun마다 새로 만들면 verifier가 덮어써져 토큰 교환이 실패한다.
     if "auth_url" not in st.session_state:
         auth_url, code_verifier = get_auth_url()
         st.session_state["auth_url"] = auth_url
         st.session_state["code_verifier"] = code_verifier
 
-    st.write("Google 계정으로 로그인하세요.")
-    st.link_button("Google 로그인", st.session_state["auth_url"], type="primary")
+    auth_error_email = None
+    if "auth_error" in st.session_state:
+        auth_error_email = st.session_state.pop("auth_error")
 
+    st.markdown('<div class="login-wrap"><div class="login-card">', unsafe_allow_html=True)
+    st.markdown(f'<div class="lock">{ICON_LOCK}</div>', unsafe_allow_html=True)
+    st.markdown("<h2>Loadcomplete 계정으로 로그인</h2>", unsafe_allow_html=True)
+    st.markdown(
+        "<p>이 서비스는 <b>@loadcomplete.com</b> 임직원만<br>이용할 수 있습니다.</p>",
+        unsafe_allow_html=True,
+    )
+
+    if auth_error_email:
+        st.error(f"**{auth_error_email}** 계정은 접근이 제한되어 있습니다.")
+
+    st.link_button(
+        "Google 로그인",
+        st.session_state["auth_url"],
+        type="primary",
+        use_container_width=True,
+    )
+    st.markdown("</div></div>", unsafe_allow_html=True)
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Drive / FB helpers
+# ────────────────────────────────────────────────────────────────────────
 
 def credentials():
     creds = credentials_from_dict(st.session_state["credentials"])
     if creds.expired and creds.refresh_token:
         from google.auth.transport.requests import Request
+
         creds.refresh(Request())
         st.session_state["credentials"] = credentials_to_dict(creds)
     return creds
@@ -103,7 +378,6 @@ def parse_bulk_links(text: str):
         fid = extract_folder_id(line)
         if fid:
             folder_ids.append(fid)
-    # 중복 제거 + 입력 순서 유지
     seen = set()
     out = []
     for fid in folder_ids:
@@ -117,7 +391,6 @@ def run_uploads(jobs, *, log_box):
     """jobs: list of (folder_id, account_id). 동일 폴더는 한 번만 스캔."""
     results = []
 
-    # 폴더별로 파일 목록을 캐시해 중복 스캔 방지
     folder_files = {}
     creds = credentials()
     for folder_id, _ in jobs:
@@ -191,7 +464,7 @@ def run_uploads(jobs, *, log_box):
             done += 1
             if total_steps:
                 progress.progress(done / total_steps, text=f"{done}/{total_steps} 처리 중...")
-            time.sleep(0.3)  # 메모리 안정화
+            time.sleep(0.3)
 
     progress.progress(1.0, text="완료")
     return results
@@ -206,13 +479,56 @@ def render_results(results, mode_label: str):
     success = int((df["status"] == "성공").sum())
     failed = int((df["status"] == "실패").sum())
 
-    c1, c2, c3 = st.columns(3)
-    c1.metric("전체", len(df))
-    c2.metric("성공", success)
-    c3.metric("실패", failed)
+    with st.container(border=True):
+        head = "✅ 업로드 완료!" if failed == 0 else "⚠️ 일부 업로드 실패"
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">'
+            f'<div style="font-size:22px">{"✅" if failed == 0 else "⚠️"}</div>'
+            f'<div><div style="font-weight:600;font-size:15px">{head}</div>'
+            f'<div style="font-size:12px;color:#65676B">{mode_label} · 총 {len(df)}건 처리</div></div></div>',
+            unsafe_allow_html=True,
+        )
 
-    st.caption(f"{mode_label} · 총 {len(df)}건 처리")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+        c1, c2, c3 = st.columns(3)
+        c1.metric("전체", len(df))
+        c2.metric("성공", success)
+        c3.metric("실패", failed)
+
+        st.dataframe(
+            df[["account", "file", "status", "error"]].rename(
+                columns={"account": "광고 계정", "file": "파일명", "status": "결과", "error": "에러"}
+            ),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+
+# ────────────────────────────────────────────────────────────────────────
+# Bulk tab
+# ────────────────────────────────────────────────────────────────────────
+
+def _account_grid(key_prefix: str) -> list[str]:
+    """2-column checkbox grid with PNG avatars. Returns selected account ids."""
+    selected = []
+    cols = st.columns(2, gap="small")
+    for i, acc in enumerate(AD_ACCOUNTS):
+        with cols[i % 2]:
+            st.markdown('<div class="account-row">', unsafe_allow_html=True)
+            rc1, rc2 = st.columns([1, 5], gap="small", vertical_alignment="center")
+            with rc1:
+                icon_path = PUBLIC_DIR / acc["icon"] if acc["icon"] else None
+                if icon_path and icon_path.exists():
+                    st.image(str(icon_path), width=38)
+            with rc2:
+                if st.checkbox(acc["name"], key=f"{key_prefix}_{acc['id']}"):
+                    selected.append(acc["id"])
+            st.markdown("</div>", unsafe_allow_html=True)
+    return selected
+
+
+def _set_all_bulk(value: bool):
+    for acc in AD_ACCOUNTS:
+        st.session_state[f"bulk_acc_{acc['id']}"] = value
 
 
 def bulk_tab():
@@ -220,24 +536,47 @@ def bulk_tab():
         st.warning("등록된 광고 계정이 없습니다. `secrets.toml`의 `[[ad_accounts]]`를 확인하세요.")
         return
 
-    st.subheader("벌크 업로드")
-    st.caption("선택한 모든 계정에 동일한 Drive 폴더의 소재가 업로드됩니다.")
+    # STEP 1: account selection
+    with st.container(border=True):
+        section_header("#E7F3FF", ICON_DOLLAR, "광고 계정 선택", "소재를 업로드할 계정을 선택하세요", step="STEP 1")
 
-    selected = st.multiselect(
-        "광고 계정 선택",
-        options=[a["id"] for a in AD_ACCOUNTS],
-        format_func=lambda i: ACCOUNT_NAMES.get(i, i),
-        key="bulk_accounts",
-    )
+        sel_cols = st.columns([1, 1, 8])
+        with sel_cols[0]:
+            st.markdown('<div class="tiny-actions">', unsafe_allow_html=True)
+            st.button("전체 선택", key="bulk_sel_all", on_click=_set_all_bulk, args=(True,))
+            st.markdown("</div>", unsafe_allow_html=True)
+        with sel_cols[1]:
+            st.markdown('<div class="tiny-actions">', unsafe_allow_html=True)
+            st.button("전체 해제", key="bulk_sel_none", on_click=_set_all_bulk, args=(False,))
+            st.markdown("</div>", unsafe_allow_html=True)
 
-    links_text = st.text_area(
-        "Google Drive 폴더 링크 또는 ID (한 줄에 하나)",
-        height=120,
-        placeholder="https://drive.google.com/drive/folders/...\n폴더ID",
-        key="bulk_links",
-    )
+        selected = _account_grid("bulk_acc")
 
-    if st.button("업로드 시작", type="primary", key="bulk_submit", disabled=not selected):
+    # STEP 2: drive links
+    with st.container(border=True):
+        section_header("#FEF3E2", ICON_FOLDER, "Google Drive 링크 입력", "폴더 URL 또는 ID (여러 개 가능)", step="STEP 2")
+
+        links_text = st.text_area(
+            "Drive 폴더 링크",
+            height=120,
+            placeholder="https://drive.google.com/drive/folders/...\n폴더ID\n폴더 URL 한 줄당 하나",
+            key="bulk_links",
+            label_visibility="collapsed",
+        )
+
+        info_box(
+            "• https://drive.google.com/drive/folders/폴더ID<br>"
+            "• 폴더 ID만 직접 입력 가능<br>"
+            "• 선택한 <b>모든 계정</b>에 동일하게 업로드됩니다"
+        )
+
+    if st.button(
+        "📤 소재 라이브러리에 업로드 시작",
+        type="primary",
+        key="bulk_submit",
+        disabled=not selected,
+        use_container_width=True,
+    ):
         folder_ids = parse_bulk_links(links_text)
         if not folder_ids:
             st.error("유효한 Drive 폴더 링크를 1개 이상 입력해주세요.")
@@ -257,53 +596,66 @@ def bulk_tab():
         render_results(results, "벌크 업로드")
 
 
+# ────────────────────────────────────────────────────────────────────────
+# Mapping tab
+# ────────────────────────────────────────────────────────────────────────
+
 def mapping_tab():
     if not AD_ACCOUNTS:
         st.warning("등록된 광고 계정이 없습니다.")
         return
 
-    st.subheader("매핑 업로드")
-    st.caption("계정별로 다른 Drive 폴더를 지정합니다.")
-
     account_names = [a["name"] for a in AD_ACCOUNTS]
     name_to_id = {a["name"]: a["id"] for a in AD_ACCOUNTS}
 
-    if "mapping_df" not in st.session_state:
-        st.session_state["mapping_df"] = pd.DataFrame(
-            {"광고 계정": pd.Series(dtype=str), "Drive 링크": pd.Series(dtype=str)}
+    with st.container(border=True):
+        section_header(
+            "#F0E6FF", ICON_MAP, "광고 계정 ↔ Drive 링크 매핑", "계정별로 다른 소재 폴더를 지정하세요"
         )
 
-    edited = st.data_editor(
-        st.session_state["mapping_df"],
-        column_config={
-            "광고 계정": st.column_config.SelectboxColumn(
-                "광고 계정", options=account_names
-            ),
-            "Drive 링크": st.column_config.TextColumn(
-                "Drive 폴더 URL 또는 ID"
-            ),
-        },
-        num_rows="dynamic",
-        use_container_width=True,
-        key="mapping_editor",
-    )
+        if "mapping_df" not in st.session_state:
+            st.session_state["mapping_df"] = pd.DataFrame(
+                {"광고 계정": pd.Series(dtype=str), "Drive 링크": pd.Series(dtype=str)}
+            )
 
-    valid_rows = [
-        (name_to_id.get(row["광고 계정"]), extract_folder_id(row["Drive 링크"]))
-        for _, row in edited.iterrows()
-        if row.get("광고 계정") and row.get("Drive 링크")
-    ]
-    valid_rows = [(acc, fid) for acc, fid in valid_rows if acc and fid]
+        edited = st.data_editor(
+            st.session_state["mapping_df"],
+            column_config={
+                "광고 계정": st.column_config.SelectboxColumn("광고 계정", options=account_names),
+                "Drive 링크": st.column_config.TextColumn("Drive 폴더 URL 또는 ID"),
+            },
+            num_rows="dynamic",
+            use_container_width=True,
+            key="mapping_editor",
+        )
 
-    st.caption(f"유효한 매핑: **{len(valid_rows)}건**")
+        valid_rows = [
+            (name_to_id.get(row["광고 계정"]), extract_folder_id(row["Drive 링크"]))
+            for _, row in edited.iterrows()
+            if row.get("광고 계정") and row.get("Drive 링크")
+        ]
+        valid_rows = [(acc, fid) for acc, fid in valid_rows if acc and fid]
+
+        st.markdown(
+            f'<div class="mapping-summary">유효한 매핑 <strong>{len(valid_rows)}건</strong></div>',
+            unsafe_allow_html=True,
+        )
+
+        info_box(
+            "<b>사용 예시</b><br>"
+            "• Seed Test → 광고 소재 폴더 A<br>"
+            "• Seed Test → 광고 소재 폴더 B<br>"
+            "• MiniTales → 광고 소재 폴더 C<br>"
+            "• Legend of Slime → 광고 소재 폴더 D"
+        )
 
     if st.button(
-        "매핑 업로드 시작",
+        "📤 매핑 업로드 시작",
         type="primary",
         key="mapping_submit",
         disabled=not valid_rows,
+        use_container_width=True,
     ):
-        # folder_id, account_id 순서로 job 구성 (같은 폴더 캐시 활용)
         jobs = [(fid, acc) for acc, fid in valid_rows]
         with st.status(f"{len(valid_rows)}개 매핑 업로드 중...", expanded=True) as status:
             results = run_uploads(jobs, log_box=status)
@@ -315,17 +667,22 @@ def mapping_tab():
         render_results(results, "매핑 업로드")
 
 
+# ────────────────────────────────────────────────────────────────────────
+# Dashboard
+# ────────────────────────────────────────────────────────────────────────
+
 def dashboard():
+    inject_css()
+    topbar()
+
     with st.sidebar:
         st.markdown(f"**{st.session_state.get('email', '')}**")
+        st.caption("Loadcomplete")
         if st.button("로그아웃", use_container_width=True):
             st.session_state.clear()
             st.rerun()
 
-    st.title("Facebook Creative Uploader")
-    st.caption("소재 라이브러리 전용")
-
-    tab_bulk, tab_map = st.tabs(["벌크 업로드", "매핑 업로드"])
+    tab_bulk, tab_map = st.tabs(["📦  벌크 업로드", "🔀  매핑 업로드"])
     with tab_bulk:
         bulk_tab()
     with tab_map:
