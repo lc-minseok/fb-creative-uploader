@@ -1,0 +1,5 @@
+streamlit>=1.32
+google-auth>=2.27
+google-auth-oauthlib>=1.2
+google-api-python-client>=2.120
+requests>=2.31
