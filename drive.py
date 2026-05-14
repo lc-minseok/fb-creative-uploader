@@ -32,7 +32,15 @@ def _client_config():
 
 
 def build_flow():
-    flow = Flow.from_client_config(_client_config(), scopes=SCOPES)
+    # PKCE는 끈다. google-auth-oauthlib 최신 버전은 autogenerate_code_verifier 가
+    # 기본 True 라 매 Flow 인스턴스마다 새 verifier 가 생성되는데, Streamlit이
+    # 외부 OAuth 리다이렉트 후 세션 상태 유지를 보장하지 않아 verifier 전달이
+    # 어렵다. 우리 OAuth 클라이언트는 PKCE 없이 동작하므로 끄는 것이 안전하다.
+    flow = Flow.from_client_config(
+        _client_config(),
+        scopes=SCOPES,
+        autogenerate_code_verifier=False,
+    )
     flow.redirect_uri = st.secrets["GOOGLE_REDIRECT_URI"]
     return flow
 
