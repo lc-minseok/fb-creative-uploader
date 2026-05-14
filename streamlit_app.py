@@ -46,13 +46,18 @@ def handle_oauth_callback():
     if "code" not in qp:
         return
     code = qp["code"]
+    code_verifier = st.session_state.get("code_verifier")
     try:
-        creds, email = exchange_code(code)
+        creds, email = exchange_code(code, code_verifier=code_verifier)
     except Exception as e:
         st.query_params.clear()
+        st.session_state.pop("auth_url", None)
+        st.session_state.pop("code_verifier", None)
         st.error(f"로그인 실패: {e}")
         return
     st.query_params.clear()
+    st.session_state.pop("auth_url", None)
+    st.session_state.pop("code_verifier", None)
     if not email.endswith(ALLOWED_DOMAIN):
         st.session_state["auth_error"] = email
         return
@@ -72,8 +77,15 @@ def login_view():
             f"**{email}** 계정은 접근이 제한되어 있습니다."
         )
 
+    # PKCE 검증을 위해 auth URL과 code_verifier를 세션에 캐시한다.
+    # 매 rerun마다 새로 만들면 verifier가 덮어써져 토큰 교환이 실패한다.
+    if "auth_url" not in st.session_state:
+        auth_url, code_verifier = get_auth_url()
+        st.session_state["auth_url"] = auth_url
+        st.session_state["code_verifier"] = code_verifier
+
     st.write("Google 계정으로 로그인하세요.")
-    st.link_button("Google 로그인", get_auth_url(), type="primary")
+    st.link_button("Google 로그인", st.session_state["auth_url"], type="primary")
 
 
 def credentials():

@@ -44,11 +44,14 @@ def get_auth_url():
         prompt="consent",
         include_granted_scopes="true",
     )
-    return url
+    # PKCE: 동일한 code_verifier 가 토큰 교환 시 다시 필요하므로 호출자에게 반환.
+    return url, flow.code_verifier
 
 
-def exchange_code(code):
+def exchange_code(code, code_verifier=None):
     flow = build_flow()
+    if code_verifier:
+        flow.code_verifier = code_verifier
     flow.fetch_token(code=code)
     creds = flow.credentials
     payload = google_id_token.verify_oauth2_token(
