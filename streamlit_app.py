@@ -24,7 +24,7 @@ PUBLIC_DIR = Path(__file__).parent / "public"
 st.set_page_config(
     page_title="Facebook Creative Uploader",
     page_icon=str(PUBLIC_DIR / "meta.png") if (PUBLIC_DIR / "meta.png").exists() else "📤",
-    layout="centered",
+    layout="wide",
 )
 
 
@@ -51,23 +51,30 @@ header[data-testid="stHeader"] { display: none !important; }
 footer { display: none !important; }
 #MainMenu { display: none !important; }
 
+/* Outer container — wide but capped, centered */
 .block-container {
   padding-top: 0 !important;
   padding-bottom: 3rem !important;
-  max-width: 760px !important;
+  max-width: 1120px !important;
+  margin: 0 auto;
 }
 
-/* Topbar */
+/* Topbar — full viewport width even inside max-width container */
 .fb-topbar {
   background: var(--fb);
   height: 56px;
-  margin: 0 -2rem 1.5rem;
-  padding: 0 24px;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-bottom: 1.25rem;
+  padding: 0 28px;
   display: flex;
   align-items: center;
   gap: 10px;
   color: white;
   box-shadow: 0 2px 8px rgba(24,119,242,0.3);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 .fb-topbar svg { display: block; flex-shrink: 0; }
 .fb-topbar .title { font-weight: 600; font-size: 17px; letter-spacing: -0.3px; }
@@ -88,7 +95,15 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   margin-bottom: 14px;
 }
 div[data-testid="stVerticalBlockBorderWrapper"] > div {
-  padding: 16px 20px !important;
+  padding: 18px 22px !important;
+}
+
+/* Make side-by-side cards equal height */
+div[data-testid="stHorizontalBlock"] > div[data-testid="column"] > div[data-testid="stVerticalBlock"] {
+  height: 100%;
+}
+div[data-testid="stHorizontalBlock"] > div[data-testid="column"] > div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {
+  height: 100%;
 }
 
 /* Section header */
@@ -159,25 +174,15 @@ button[data-testid="baseButton-primary"] {
 }
 
 /* Login card */
-.login-wrap { display: flex; justify-content: center; padding: 60px 20px 0; }
-.login-card {
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-  padding: 36px 28px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: white;
-}
-.login-card .lock {
+.lock-wrap {
   width: 56px; height: 56px;
-  margin: 0 auto 18px;
+  margin: 8px auto 18px;
   background: var(--fb-light);
   border-radius: 16px;
   display: flex; align-items: center; justify-content: center;
 }
-.login-card h2 { font-size: 18px; margin: 0 0 8px; color: var(--text); }
-.login-card p { font-size: 13px; color: var(--muted); margin: 0 0 22px; line-height: 1.7; }
+.login-title { font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 8px; color: var(--text); }
+.login-sub { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.7; margin-bottom: 18px; }
 
 /* Tabs polish */
 .stTabs [data-baseweb="tab-list"] { gap: 4px; }
@@ -193,16 +198,23 @@ button[data-testid="baseButton-primary"] {
 /* Checkbox + image rows in account grid */
 .account-row [data-testid="stCheckbox"] label p { font-weight: 600 !important; font-size: 14px !important; }
 
-/* Small inline action buttons */
-.tiny-actions .stButton button {
-  padding: 2px 10px !important;
-  font-size: 12px !important;
-  background: transparent !important;
-  color: var(--fb) !important;
-  border: none !important;
-  box-shadow: none !important;
+/* Buttons: no text wrapping inside narrow columns */
+.stButton button { white-space: nowrap !important; }
+
+/* Secondary buttons (default) — keep small but visible */
+.stButton > button:not([kind="primary"]) {
+  border-radius: 8px !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  background: white !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text) !important;
 }
-.tiny-actions .stButton button:hover { text-decoration: underline; }
+.stButton > button:not([kind="primary"]):hover {
+  border-color: var(--fb) !important;
+  color: var(--fb) !important;
+}
 
 /* Sidebar tidy */
 [data-testid="stSidebar"] { background: white; }
@@ -338,24 +350,29 @@ def login_view():
     if "auth_error" in st.session_state:
         auth_error_email = st.session_state.pop("auth_error")
 
-    st.markdown('<div class="login-wrap"><div class="login-card">', unsafe_allow_html=True)
-    st.markdown(f'<div class="lock">{ICON_LOCK}</div>', unsafe_allow_html=True)
-    st.markdown("<h2>Loadcomplete 계정으로 로그인</h2>", unsafe_allow_html=True)
-    st.markdown(
-        "<p>이 서비스는 <b>@loadcomplete.com</b> 임직원만<br>이용할 수 있습니다.</p>",
-        unsafe_allow_html=True,
-    )
+    # 가운데 정렬: 좌/우 빈 컬럼으로 카드 폭 제한
+    _, mid, _ = st.columns([1, 1.2, 1])
+    with mid:
+        with st.container(border=True):
+            st.markdown(f'<div class="lock-wrap">{ICON_LOCK}</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="login-title">Loadcomplete 계정으로 로그인</div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                '<div class="login-sub">이 서비스는 <b>@loadcomplete.com</b> 임직원만 이용할 수 있습니다.</div>',
+                unsafe_allow_html=True,
+            )
 
-    if auth_error_email:
-        st.error(f"**{auth_error_email}** 계정은 접근이 제한되어 있습니다.")
+            if auth_error_email:
+                st.error(f"**{auth_error_email}** 계정은 접근이 제한되어 있습니다.")
 
-    st.link_button(
-        "Google 로그인",
-        st.session_state["auth_url"],
-        type="primary",
-        use_container_width=True,
-    )
-    st.markdown("</div></div>", unsafe_allow_html=True)
+            st.link_button(
+                "Google 로그인",
+                st.session_state["auth_url"],
+                type="primary",
+                use_container_width=True,
+            )
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -536,39 +553,52 @@ def bulk_tab():
         st.warning("등록된 광고 계정이 없습니다. `secrets.toml`의 `[[ad_accounts]]`를 확인하세요.")
         return
 
-    # STEP 1: account selection
-    with st.container(border=True):
-        section_header("#E7F3FF", ICON_DOLLAR, "광고 계정 선택", "소재를 업로드할 계정을 선택하세요", step="STEP 1")
+    # Side-by-side STEP 1 (계정) and STEP 2 (Drive 링크)
+    left, right = st.columns([1.15, 1], gap="medium")
 
-        sel_cols = st.columns([1, 1, 8])
-        with sel_cols[0]:
-            st.markdown('<div class="tiny-actions">', unsafe_allow_html=True)
-            st.button("전체 선택", key="bulk_sel_all", on_click=_set_all_bulk, args=(True,))
-            st.markdown("</div>", unsafe_allow_html=True)
-        with sel_cols[1]:
-            st.markdown('<div class="tiny-actions">', unsafe_allow_html=True)
-            st.button("전체 해제", key="bulk_sel_none", on_click=_set_all_bulk, args=(False,))
-            st.markdown("</div>", unsafe_allow_html=True)
+    with left:
+        with st.container(border=True):
+            section_header(
+                "#E7F3FF", ICON_DOLLAR, "광고 계정 선택", "소재를 업로드할 계정을 선택하세요",
+                step="STEP 1",
+            )
 
-        selected = _account_grid("bulk_acc")
+            sel_cols = st.columns([1, 1, 4])
+            with sel_cols[0]:
+                st.button(
+                    "전체 선택", key="bulk_sel_all",
+                    on_click=_set_all_bulk, args=(True,),
+                    use_container_width=True,
+                )
+            with sel_cols[1]:
+                st.button(
+                    "전체 해제", key="bulk_sel_none",
+                    on_click=_set_all_bulk, args=(False,),
+                    use_container_width=True,
+                )
 
-    # STEP 2: drive links
-    with st.container(border=True):
-        section_header("#FEF3E2", ICON_FOLDER, "Google Drive 링크 입력", "폴더 URL 또는 ID (여러 개 가능)", step="STEP 2")
+            selected = _account_grid("bulk_acc")
 
-        links_text = st.text_area(
-            "Drive 폴더 링크",
-            height=120,
-            placeholder="https://drive.google.com/drive/folders/...\n폴더ID\n폴더 URL 한 줄당 하나",
-            key="bulk_links",
-            label_visibility="collapsed",
-        )
+    with right:
+        with st.container(border=True):
+            section_header(
+                "#FEF3E2", ICON_FOLDER, "Google Drive 링크 입력", "폴더 URL 또는 ID (여러 개 가능)",
+                step="STEP 2",
+            )
 
-        info_box(
-            "• https://drive.google.com/drive/folders/폴더ID<br>"
-            "• 폴더 ID만 직접 입력 가능<br>"
-            "• 선택한 <b>모든 계정</b>에 동일하게 업로드됩니다"
-        )
+            links_text = st.text_area(
+                "Drive 폴더 링크",
+                height=160,
+                placeholder="https://drive.google.com/drive/folders/...\n폴더ID\n폴더 URL 한 줄당 하나",
+                key="bulk_links",
+                label_visibility="collapsed",
+            )
+
+            info_box(
+                "• https://drive.google.com/drive/folders/폴더ID<br>"
+                "• 폴더 ID만 직접 입력 가능<br>"
+                "• 선택한 <b>모든 계정</b>에 동일하게 업로드됩니다"
+            )
 
     if st.button(
         "📤 소재 라이브러리에 업로드 시작",
