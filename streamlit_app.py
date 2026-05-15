@@ -59,32 +59,38 @@ footer { display: none !important; }
   margin: 0 auto;
 }
 
-/* Topbar — full viewport width even inside max-width container */
+/* Topbar — background full viewport width, content aligned with main column */
 .fb-topbar {
   background: var(--fb);
-  height: 56px;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   margin-bottom: 1.25rem;
-  padding: 0 28px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
   color: white;
   box-shadow: 0 2px 8px rgba(24,119,242,0.3);
   position: sticky;
   top: 0;
   z-index: 100;
 }
+.fb-topbar-inner {
+  height: 56px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .fb-topbar svg { display: block; flex-shrink: 0; }
 .fb-topbar .title { font-weight: 600; font-size: 17px; letter-spacing: -0.3px; }
 .fb-topbar .badge {
   margin-left: auto;
-  background: rgba(255,255,255,0.2);
-  font-size: 11px;
-  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.22);
+  color: white;
+  font-size: 11.5px;
+  padding: 5px 12px;
   border-radius: 20px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* Bordered containers act as cards */
@@ -245,9 +251,12 @@ def inject_css():
 
 def topbar():
     st.markdown(
-        f'<div class="fb-topbar">{FB_SVG}'
+        f'<div class="fb-topbar">'
+        f'<div class="fb-topbar-inner">'
+        f"{FB_SVG}"
         f'<span class="title">Facebook Creative Uploader</span>'
-        f'<span class="badge">소재 라이브러리 전용</span></div>',
+        f'<span class="badge">소재 라이브러리 전용</span>'
+        f"</div></div>",
         unsafe_allow_html=True,
     )
 
@@ -525,21 +534,17 @@ def render_results(results, mode_label: str):
 # ────────────────────────────────────────────────────────────────────────
 
 def _account_grid(key_prefix: str) -> list[str]:
-    """2-column checkbox grid with PNG avatars. Returns selected account ids."""
+    """One row per account: icon + name + checkbox. Returns selected ids."""
     selected = []
-    cols = st.columns(2, gap="small")
-    for i, acc in enumerate(AD_ACCOUNTS):
-        with cols[i % 2]:
-            st.markdown('<div class="account-row">', unsafe_allow_html=True)
-            rc1, rc2 = st.columns([1, 5], gap="small", vertical_alignment="center")
-            with rc1:
-                icon_path = PUBLIC_DIR / acc["icon"] if acc["icon"] else None
-                if icon_path and icon_path.exists():
-                    st.image(str(icon_path), width=38)
-            with rc2:
-                if st.checkbox(acc["name"], key=f"{key_prefix}_{acc['id']}"):
-                    selected.append(acc["id"])
-            st.markdown("</div>", unsafe_allow_html=True)
+    for acc in AD_ACCOUNTS:
+        rc1, rc2 = st.columns([1, 10], gap="small", vertical_alignment="center")
+        with rc1:
+            icon_path = PUBLIC_DIR / acc["icon"] if acc["icon"] else None
+            if icon_path and icon_path.exists():
+                st.image(str(icon_path), width=36)
+        with rc2:
+            if st.checkbox(acc["name"], key=f"{key_prefix}_{acc['id']}"):
+                selected.append(acc["id"])
     return selected
 
 
@@ -554,7 +559,7 @@ def bulk_tab():
         return
 
     # Side-by-side STEP 1 (계정) and STEP 2 (Drive 링크)
-    left, right = st.columns([1.15, 1], gap="medium")
+    left, right = st.columns([1, 1.2], gap="medium")
 
     with left:
         with st.container(border=True):
