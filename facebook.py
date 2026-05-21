@@ -45,12 +45,28 @@ def upload_image(ad_account_id: str, file_bytes: bytes, file_name: str) -> dict:
     return images[first_key]
 
 
+def upload_video(ad_account_id: str, file_bytes: bytes, file_name: str) -> dict:
+    """multipart 로 영상 바이트를 직접 업로드. file_url 방식은 FB가 Google
+    Drive URL fetch 에 실패해서(389/1363057) 사용 불가."""
+    files = {"source": (file_name, file_bytes, "video/mp4")}
+    data = {"access_token": _token(), "name": file_name}
+    res = requests.post(
+        f"{FB_API}/{ad_account_id}/advideos",
+        files=files,
+        data=data,
+        timeout=600,
+    )
+    _raise_fb_error(res, "동영상 업로드 실패")
+    return res.json()
+
+
 def upload_video_by_url(ad_account_id: str, file_url: str, file_name: str) -> dict:
+    """Legacy: FB 가 Drive URL을 fetch 못해 거의 항상 실패. 호환을 위해 남겨둠."""
     res = requests.post(
         f"{FB_API}/{ad_account_id}/advideos",
         data={
             "file_url": file_url,
-            "name": file_name,  # FB 그래프 API 공식 파라미터는 name (title 은 구버전)
+            "name": file_name,
             "access_token": _token(),
         },
         timeout=300,
