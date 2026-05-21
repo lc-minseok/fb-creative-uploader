@@ -13,9 +13,8 @@ from drive import (
     extract_folder_id,
     get_auth_url,
     list_files_in_folder,
-    video_media_url,
 )
-from facebook import upload_image, upload_video_by_url
+from facebook import upload_image, upload_video
 
 ALLOWED_DOMAIN = "@loadcomplete.com"
 PUBLIC_DIR = Path(__file__).parent / "public"
@@ -462,9 +461,13 @@ def run_uploads(jobs, *, log_box):
                     del data
                     gc.collect()
                 elif mime.startswith("video/"):
+                    # FB가 Drive URL fetch에 실패하므로 multipart 직접 업로드.
+                    # 영상 한 개를 메모리에 올렸다가 업로드 직후 해제한다.
                     creds = credentials()
-                    url = video_media_url(creds, file["id"])
-                    upload_video_by_url(account_id, url, name)
+                    data = download_file_bytes(creds, file["id"])
+                    upload_video(account_id, data, name)
+                    del data
+                    gc.collect()
                 else:
                     log_box.write(f"⏭️ 지원하지 않는 형식 건너뜀: {name} ({mime})")
                     continue
