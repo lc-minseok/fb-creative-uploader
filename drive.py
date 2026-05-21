@@ -62,10 +62,13 @@ def exchange_code(code, code_verifier=None):
         flow.code_verifier = code_verifier
     flow.fetch_token(code=code)
     creds = flow.credentials
+    # clock_skew_in_seconds: 로컬 PC 시계가 Google 서버보다 살짝 느릴 때
+    # "Token used too early" 에러로 로그인이 막히는 일을 막기 위해 10초까지 허용.
     payload = google_id_token.verify_oauth2_token(
         creds.id_token,
         Request(),
         audience=st.secrets["GOOGLE_CLIENT_ID"],
+        clock_skew_in_seconds=10,
     )
     return creds, payload.get("email", "")
 
