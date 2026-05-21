@@ -1,8 +1,8 @@
 @echo off
+chcp 65001 > nul
 title FB Creative Uploader
 cd /d "%~dp0"
 
-REM 처음 실행이면 가상환경 자동 셋업
 if not exist ".venv\Scripts\activate.bat" (
     echo [setup] Python 가상환경을 처음 만드는 중...
     python -m venv .venv
@@ -20,7 +20,6 @@ if not exist ".venv\Scripts\activate.bat" (
     call .venv\Scripts\activate.bat
 )
 
-REM secrets.toml 없으면 안내
 if not exist ".streamlit\secrets.toml" (
     echo.
     echo [error] .streamlit\secrets.toml 이 없습니다.
@@ -36,5 +35,4 @@ echo.
 
 streamlit run streamlit_app.py
 
-REM 비정상 종료 시 메시지 확인 가능하게
 pause
